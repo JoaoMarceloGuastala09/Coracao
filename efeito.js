@@ -1,20 +1,22 @@
-var canvas = document.getElementById("canvas")
+var canvas = document.getElementById("canvas");
 
-canvas.width = window.innerWidth; 
+canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-var gl = canvas.getContext("webgl");
-if (!gl){
-    console.error('Seu navegador não suporta WebGL.');
+var gl = canvas.getContext('webgl');
+if(!gl){
+  console.error("Não foi possível inicializar o WebGL.");
 }
 
 var time = 0.0;
 
-var vertexsource = `atribut vec2 position; 
-                    void main(){
-                        gl_Position = vec4(position, 0.0, 1.0);
-                    }
+var vertexSource = `
+attribute vec2 position;
+void main() {
+  gl_Position = vec4(position, 0.0, 1.0);
+}
 `;
+
 var fragmentSource = `
 precision highp float;
 
@@ -166,50 +168,78 @@ void main(){
 
 window.addEventListener('resize', onWindowResize, false);
 
-function onWindowResize() {
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
+function onWindowResize(){
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
 }
 
 window.addEventListener('resize', onWindowResize, false);
 
 function onWindowResize(){
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.uniform1f(width, window.innerWidth);
-    gl.uniform1f(height, window.innerHeight);
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  gl.viewport(0, 0, canvas.width, canvas.height);
+  gl.uniform1f(widthHandle, window.innerWidth);
+  gl.uniform1f(heightHandle, window.innerHeight);
 }
 
-function compileShader(shaderSource, type){
-    var shader = gl.createShader(type);
-    gl.shaderSource(shader, shaderSource);
-    gl.compileShader(shader);
-
-    if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)){
-        throw "Falha na complação do shader: " + gl.getShaderInfoLog(shader);} 
-        return shader;
+function compileShader(shaderSource, shaderType){
+  var shader = gl.createShader(shaderType);
+  gl.shaderSource(shader, shaderSource);
+  gl.compileShader(shader);
+  if(!gl.getShaderParameter(shader, gl.COMPILE_STATUS)){
+    throw "Falha na compilação do shader: " + gl.getShaderInfoLog(shader);
+  }
+  return shader;
 }
 
-function getAtribLocation(program, name){
-
-    var attribLocation = gl.getAttribLocation(program, name);
-
-    if(attribLocation === -1){throw "Não foi possivel encontrar o atributo'" + name + "'.";}
-    
-    return attribLocation;
+function getAttribLocation(program, name) {
+  var attributeLocation = gl.getAttribLocation(program, name);
+  if (attributeLocation === -1) {
+    throw 'Não foi possível encontrar o atributo ' + name + '.';
+  }
+  return attributeLocation;
 }
 
-function getUniformLocation(program, name){
-
-    var attributeLocation = gl.getUniformLocation(program, name);
-
-    if(attributeLocation === -1){throw "Não foi possivel encontrar o atributo'" + name + "'.";}
-    
-    return attributeLocation;
+function getUniformLocation(program, name) {
+  var attributeLocation = gl.getUniformLocation(program, name);
+  if (attributeLocation === -1) {
+    throw 'Não foi possível encontrar o uniforme ' + name + '.';
+  }
+  return attributeLocation;
 }
+
+var vertexShader = compileShader(vertexSource, gl.VERTEX_SHADER);
+var fragmentShader = compileShader(fragmentSource, gl.FRAGMENT_SHADER);
+
+var program = gl.createProgram();
+gl.attachShader(program, vertexShader);
+gl.attachShader(program, fragmentShader);
+gl.linkProgram(program);
+
+gl.useProgram(program);
+
+var vertexData = new Float32Array([
+  -1.0,  1.0,   
+  -1.0, -1.0,   
+   1.0,  1.0,   
+   1.0, -1.0,   
+]);
+
+var vertexDataBuffer = gl.createBuffer();
+gl.bindBuffer(gl.ARRAY_BUFFER, vertexDataBuffer);
+gl.bufferData(gl.ARRAY_BUFFER, vertexData, gl.STATIC_DRAW);
+
+var positionHandle = getAttribLocation(program, 'position');
+
+gl.enableVertexAttribArray(positionHandle);
+gl.vertexAttribPointer(positionHandle,
+  2,        
+  gl.FLOAT, 
+  false,    
+  2 * 4,    
+  0         
+);
 
 var timeHandle = getUniformLocation(program, 'time');
 var widthHandle = getUniformLocation(program, 'width');
