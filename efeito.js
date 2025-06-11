@@ -201,3 +201,35 @@ function getAtribLocation(program, name){
     
     return attribLocation;
 }
+
+function getUniformLocation(program, name){
+
+    var attributeLocation = gl.getUniformLocation(program, name);
+
+    if(attributeLocation === -1){throw "Não foi possivel encontrar o atributo'" + name + "'.";}
+    
+    return attributeLocation;
+}
+
+var timeHandle = getUniformLocation(program, 'time');
+var widthHandle = getUniformLocation(program, 'width');
+var heightHandle = getUniformLocation(program, 'height');
+
+gl.uniform1f(widthHandle, window.innerWidth);
+gl.uniform1f(heightHandle, window.innerHeight);
+
+var lastFrame = Date.now();
+var thisFrame;
+
+function draw(){
+  thisFrame = Date.now();
+  time += (thisFrame - lastFrame)/1000;
+  lastFrame = thisFrame;
+
+  gl.uniform1f(timeHandle, time);
+  gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+
+  requestAnimationFrame(draw);
+}
+
+draw();
